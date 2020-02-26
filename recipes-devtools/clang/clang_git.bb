@@ -102,6 +102,11 @@ LLVM_EXPERIMENTAL_TARGETS_TO_BUILD_append = ";${@get_clang_experimental_target_a
 HF = "${@ bb.utils.contains('TUNE_CCARGS_MFLOAT', 'hard', 'hf', '', d)}"
 HF[vardepvalue] = "${HF}"
 
+LLVM_PROJECTS ?= "clang;clang-tools-extra;lld;lldb"
+# There is no LLDB support for RISCV
+LLVM_PROJECTS_riscv32 ?= "clang;clang-tools-extra;lld"
+LLVM_PROJECTS_riscv64 ?= "clang;clang-tools-extra;lld"
+
 EXTRA_OECMAKE += "-DLLVM_ENABLE_ASSERTIONS=OFF \
                   -DLLVM_ENABLE_EXPENSIVE_CHECKS=OFF \
                   -DLLVM_ENABLE_PIC=ON \
@@ -113,7 +118,7 @@ EXTRA_OECMAKE += "-DLLVM_ENABLE_ASSERTIONS=OFF \
                   -DCMAKE_SYSTEM_NAME=Linux \
                   -DCMAKE_BUILD_TYPE=Release \
                   -DBUILD_SHARED_LIBS=OFF \
-                  -DLLVM_ENABLE_PROJECTS='clang;clang-tools-extra;lld;lldb' \
+                  -DLLVM_ENABLE_PROJECTS='${LLVM_PROJECTS}' \
                   -DLLVM_BINUTILS_INCDIR=${STAGING_INCDIR} \
                   -DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON \
 "
@@ -215,6 +220,8 @@ do_install_append_class-nativesdk () {
 }
 
 PACKAGES =+ "${PN}-libllvm ${PN}-lldb-python libclang"
+PACKAGES_remove_riscv32 = "${PN}-lldb-python"
+PACKAGES_remove_riscv64 = "${PN}-lldb-python"
 
 PROVIDES += "llvm llvm${PV}"
 PROVIDES_append_class-native = " llvm-native"
