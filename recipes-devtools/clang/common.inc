@@ -31,6 +31,13 @@ SRC_URI = "\
     file://0021-llvm-Add-lz-to-linker-cmdline-if-enabled.patch \
     file://0022-libcxx-Add-compiler-runtime-library-to-link-step-for.patch \
     file://0023-clang-llvm-cmake-Fix-configure-for-packages-using-fi.patch \
+    file://D68899-de1c2877a9ff12899ef50e179ade748fba8ab0c0.patch \
+    file://D69003-09856feb3cc141f4f9c8b9edec28602ac4f21575.patch \
+    file://D69444-d4a4a32cd94eccbaaa4608b0daac8b820e041214.patch \
+    file://f128f442a3d23674bee19ae18e29f92c9dfe40cd.patch \
+    file://D69869-1d40c4150630729a9c1ce5119a8027dac93a5b2d.patch \
+    file://D68964-cef85193b2cc1817ca43199a0ae9c6f25723997d.patch \
+    file://D74399-9816e726e747d72e0c5ac92aa20e652031a10448.patch \
 "
 
 # Fallback to no-PIE if not set

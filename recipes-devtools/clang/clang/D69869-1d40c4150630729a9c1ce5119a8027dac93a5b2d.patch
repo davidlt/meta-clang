@@ -1,0 +1,39 @@
+From 1d40c4150630729a9c1ce5119a8027dac93a5b2d Mon Sep 17 00:00:00 2001
+From: Gokturk Yuksek <gokturk@binghamton.edu>
+Date: Fri, 14 Feb 2020 14:12:45 +0000
+Subject: [PATCH] [clang-tools-extra] fix the check for if '-latomic' is
+ necessary
+
+Summary:
+The CheckAtomic module performs two tests to determine if passing
+'-latomic' to the linker is required: one for 64-bit atomics, and
+another for non-64-bit atomics. clangd only uses the result from
+HAVE_CXX_ATOMICS64_WITHOUT_LIB. This is incomplete because there are
+uses of non-64-bit atomics in the code, such as the ReplyOnce::Replied
+of type std::atomic<bool> defined in clangd/ClangdLSPServer.cpp.
+
+Fix by also checking for the result of HAVE_CXX_ATOMICS_WITHOUT_LIB.
+
+See also: https://reviews.llvm.org/D68964
+
+Reviewers: ilya-biryukov, nridge, kadircet, beanz, compnerd, luismarques
+Reviewed By: luismarques
+Tags: #clang
+Differential Revision: https://reviews.llvm.org/D69869
+---
+ clang-tools-extra/clangd/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/clang-tools-extra/clangd/CMakeLists.txt b/clang-tools-extra/clangd/CMakeLists.txt
+index e3eccb50a496..fc5a07e69e9d 100644
+--- a/clang-tools-extra/clangd/CMakeLists.txt
++++ b/clang-tools-extra/clangd/CMakeLists.txt
+@@ -30,7 +30,7 @@ if(CLANG_BUILT_STANDALONE)
+ endif()
+ 
+ set(CLANGD_ATOMIC_LIB "")
+-if(NOT HAVE_CXX_ATOMICS64_WITHOUT_LIB)
++if(NOT HAVE_CXX_ATOMICS_WITHOUT_LIB OR NOT HAVE_CXX_ATOMICS64_WITHOUT_LIB)
+   list(APPEND CLANGD_ATOMIC_LIB "atomic")
+ endif()
+ 

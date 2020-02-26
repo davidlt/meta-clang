@@ -1,0 +1,82 @@
+From 9816e726e747d72e0c5ac92aa20e652031a10448 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Lu=C3=ADs=20Marques?= <luismarques@lowrisc.org>
+Date: Fri, 14 Feb 2020 13:44:42 +0000
+Subject: [PATCH] [Driver][RISCV] Add RedHat Linux RISC-V triple
+
+Summary: Adds the RedHat Linux triple to the list of 64-bit RISC-V triples.
+Without this the gcc libraries wouldn't be found by clang on a redhat/fedora
+system, as the search list included `/usr/lib/gcc/riscv64-redhat-linux-gnu`
+but the correct path didn't include the `-gnu` suffix.
+
+Reviewers: lenary, asb, dlj
+Reviewed By: lenary
+Tags: #clang
+Differential Revision: https://reviews.llvm.org/D74399
+---
+ clang/lib/Driver/ToolChains/Gnu.cpp               |  1 +
+ .../usr/lib/gcc/riscv64-redhat-linux/9/crtbegin.o |  0
+ .../usr/lib/gcc/riscv64-redhat-linux/9/crtend.o   |  0
+ .../usr/lib/gcc/riscv64-redhat-linux/9/crti.o     |  0
+ .../usr/lib/gcc/riscv64-redhat-linux/9/crtn.o     |  0
+ .../fedora_31_riscv64_tree/usr/lib64/crt1.o       |  0
+ clang/test/Driver/linux-ld.c                      | 15 +++++++++++++++
+ 7 files changed, 16 insertions(+)
+ create mode 100644 clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtbegin.o
+ create mode 100644 clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtend.o
+ create mode 100644 clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crti.o
+ create mode 100644 clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtn.o
+ create mode 100644 clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib64/crt1.o
+
+diff --git a/clang/lib/Driver/ToolChains/Gnu.cpp b/clang/lib/Driver/ToolChains/Gnu.cpp
+index bc67a7e0cdf9..dadbfa288a03 100644
+--- a/clang/lib/Driver/ToolChains/Gnu.cpp
++++ b/clang/lib/Driver/ToolChains/Gnu.cpp
+@@ -2090,6 +2090,7 @@ void Generic_GCC::GCCInstallationDetector::AddDefaultGCCPrefixes(
+   static const char *const RISCV64Triples[] = {"riscv64-unknown-linux-gnu",
+                                                "riscv64-linux-gnu",
+                                                "riscv64-unknown-elf",
++                                               "riscv64-redhat-linux",
+                                                "riscv64-suse-linux"};
+ 
+   static const char *const SPARCv8LibDirs[] = {"/lib32", "/lib"};
+diff --git a/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtbegin.o b/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtbegin.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtend.o b/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtend.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crti.o b/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crti.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtn.o b/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib/gcc/riscv64-redhat-linux/9/crtn.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib64/crt1.o b/clang/test/Driver/Inputs/fedora_31_riscv64_tree/usr/lib64/crt1.o
+new file mode 100644
+index 000000000000..e69de29bb2d1
+diff --git a/clang/test/Driver/linux-ld.c b/clang/test/Driver/linux-ld.c
+index 51227550b528..ec539522c25d 100644
+--- a/clang/test/Driver/linux-ld.c
++++ b/clang/test/Driver/linux-ld.c
+@@ -769,6 +769,21 @@
+ // CHECK-FEDORA-21-AARCH64: "{{.*}}/usr/lib/gcc/aarch64-redhat-linux/4.9.0{{/|\\\\}}crtend.o"
+ // CHECK-FEDORA-21-AARCH64: "{{.*}}/usr/lib/gcc/aarch64-redhat-linux/4.9.0/../../../../lib64{{/|\\\\}}crtn.o"
+ //
++// Check Fedora 31 on riscv64.
++// RUN: %clang -no-canonical-prefixes %s -### -o %t.o 2>&1 \
++// RUN:     --target=riscv64-redhat-linux -rtlib=platform \
++// RUN:     --gcc-toolchain="" \
++// RUN:     --sysroot=%S/Inputs/fedora_31_riscv64_tree \
++// RUN:   | FileCheck --check-prefix=CHECK-FEDORA-31-RISCV64 %s
++// CHECK-FEDORA-31-RISCV64: "{{.*}}ld{{(.exe)?}}" "--sysroot=[[SYSROOT:[^"]+]]"
++// CHECK-FEDORA-31-RISCV64: "{{.*}}/usr/lib/gcc/riscv64-redhat-linux/9/../../../../lib64{{/|\\\\}}crt1.o"
++// CHECK-FEDORA-31-RISCV64: "{{.*}}/usr/lib/gcc/riscv64-redhat-linux/9{{/|\\\\}}crti.o"
++// CHECK-FEDORA-31-RISCV64: "{{.*}}/usr/lib/gcc/riscv64-redhat-linux/9{{/|\\\\}}crtbegin.o"
++// CHECK-FEDORA-31-RISCV64: "-L[[SYSROOT]]/usr/lib/gcc/riscv64-redhat-linux/9"
++// CHECK-FEDORA-31-RISCV64: "-L[[SYSROOT]]/usr/lib/gcc/riscv64-redhat-linux/9/../../../../lib64"
++// CHECK-FEDORA-31-RISCV64: "{{.*}}/usr/lib/gcc/riscv64-redhat-linux/9{{/|\\\\}}crtend.o"
++// CHECK-FEDORA-31-RISCV64: "{{.*}}/usr/lib/gcc/riscv64-redhat-linux/9{{/|\\\\}}crtn.o"
++//
+ // RUN: %clang -no-canonical-prefixes %s -### -o %t.o 2>&1 \
+ // RUN:     --target=arm-unknown-linux-gnueabi -rtlib=platform \
+ // RUN:     --gcc-toolchain="" \
