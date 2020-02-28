@@ -38,6 +38,7 @@ SRC_URI = "\
     file://D69869-1d40c4150630729a9c1ce5119a8027dac93a5b2d.patch \
     file://D68964-cef85193b2cc1817ca43199a0ae9c6f25723997d.patch \
     file://D74399-9816e726e747d72e0c5ac92aa20e652031a10448.patch \
+    file://fix-clang-driver-gcc-install-path-on-openembedded.patch \
 "
 
 # Fallback to no-PIE if not set
